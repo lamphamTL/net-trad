@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Netflix Custom Subtitles",
+  "version": "0.1.0",
+  "description": "Load your own .srt/.vtt subtitles on Netflix and hide the built-in ones.",
+  "permissions": ["storage", "activeTab", "scripting", "tabs"],
+  "host_permissions": ["*://*.netflix.com/*"],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "netflix-custom-subs@local.dev",
+      "strict_min_version": "115.0"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.netflix.com/watch/*"],
+      "js": ["content.js"],
+      "css": ["overlay.css"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["inject.js"],
+      "matches": ["*://*.netflix.com/*"]
+    }
+  ],
+  "icons": {
+    "16": "icon-16.png",
+    "48": "icon-48.png",
+    "128": "icon.png"
+  },
+  "action": {
+    "default_title": "Netflix Custom Subtitles — click to open",
+    "default_icon": {
+      "16": "icon-16.png",
+      "48": "icon-48.png"
+    }
+  }
+}

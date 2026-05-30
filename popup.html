@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        font-family: -apple-system, sans-serif;
+        width: 300px;
+        padding: 12px;
+        margin: 0;
+        background: #141414;
+        color: #fff;
+      }
+      h1 { font-size: 14px; margin: 0 0 10px; }
+      h2 { font-size: 12px; margin: 14px 0 6px; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; }
+      label { display: block; font-size: 12px; margin: 8px 0 4px; }
+      input[type="file"], input[type="number"], input[type="text"], input[type="password"], select {
+        width: 100%;
+        box-sizing: border-box;
+        background: #222;
+        color: #fff;
+        border: 1px solid #444;
+        padding: 6px;
+        border-radius: 4px;
+      }
+      button {
+        margin-top: 6px;
+        width: 100%;
+        padding: 8px;
+        background: #e50914;
+        color: #fff;
+        border: 0;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      button.secondary { background: #333; }
+      button:disabled { opacity: 0.4; cursor: not-allowed; }
+      .status { font-size: 11px; opacity: 0.7; margin-top: 8px; }
+      hr { border: 0; border-top: 1px solid #333; margin: 14px 0; }
+    </style>
+  </head>
+  <body>
+    <h1>Netflix Custom Subtitles</h1>
+
+    <div id="titleBar" style="padding:8px;background:#1f1f1f;border-radius:4px;font-size:12px;margin-bottom:10px">
+      <strong>Current title:</strong> <span id="titleId">—</span>
+    </div>
+
+    <h2>Step 1 — Capture from Netflix</h2>
+    <div class="status" id="captureStatus">No subs captured yet.</div>
+    <button id="download" disabled>Download captured subs (.srt)</button>
+
+    <hr />
+
+    <h2>Step 2 — Upload translated .srt</h2>
+    <input type="file" id="file" accept=".srt,.vtt" />
+    <div id="dropZone" style="
+      border: 2px dashed #555;
+      border-radius: 6px;
+      padding: 16px 12px;
+      text-align: center;
+      font-size: 12px;
+      color: #aaa;
+      transition: all 0.15s;
+      margin-top: 8px;
+    ">
+      …or drag .srt file here
+    </div>
+    <div class="status" id="uploadStatus"></div>
+
+    <label for="offset">Sync offset (seconds)</label>
+    <input type="number" id="offset" step="0.5" value="0" />
+
+    <button id="clear" class="secondary">Clear uploaded subs</button>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

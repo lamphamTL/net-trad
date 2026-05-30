@@ -1,0 +1,28 @@
+/* Hide Netflix native subtitles */
+.player-timedtext,
+.player-timedtext-text-container {
+  display: none !important;
+}
+
+/* Our overlay */
+#custom-subs-overlay {
+  position: absolute;
+  bottom: 10%;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  text-align: center;
+  color: #fff;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  font-size: 2.2vw;
+  font-weight: 600;
+  line-height: 1.3;
+  text-shadow:
+    0 0 4px #000,
+    1px 1px 2px #000,
+    -1px -1px 2px #000;
+  pointer-events: none;
+  z-index: 2147483647;
+  padding: 0 4%;
+  white-space: pre-wrap;
+}

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Rounded red background -->
+  <rect width="128" height="128" rx="22" ry="22" fill="#e50914"/>
+
+  <!-- Stylized screen / play area -->
+  <rect x="20" y="22" width="88" height="58" rx="6" ry="6" fill="#0a0a0a"/>
+
+  <!-- Play triangle -->
+  <path d="M55 38 L75 51 L55 64 Z" fill="#ffffff" opacity="0.85"/>
+
+  <!-- Subtitle bars (translation theme) -->
+  <rect x="22" y="90" width="84" height="8" rx="4" fill="#ffffff"/>
+  <rect x="34" y="104" width="60" height="8" rx="4" fill="#ffffff" opacity="0.85"/>
+</svg>
