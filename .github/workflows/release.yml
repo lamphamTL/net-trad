@@ -17,14 +17,9 @@ jobs:
       - name: Read version from VERSION file
         id: ver
         run: |
-          V=$(tr -d '[:space:]' < VERSION)
-          if [ -z "$V" ]; then
-            echo "VERSION file is empty" >&2
-            exit 1
-          fi
-          echo "v=$V" >> "$GITHUB_OUTPUT"
-          echo "tag=v$V" >> "$GITHUB_OUTPUT"
-          echo "Version: $V"
+          VERSION=$(cat VERSION)
+          echo "v=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Skip if release already exists
         id: check
