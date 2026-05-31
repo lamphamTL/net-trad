@@ -1,0 +1,104 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g. 0.1.2)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install web-ext
+        run: npm install -g web-ext@8
+
+      - name: Resolve version
+        id: ver
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            V="${{ inputs.version }}"
+          else
+            V="${GITHUB_REF_NAME#v}"
+          fi
+          echo "v=$V" >> "$GITHUB_OUTPUT"
+          echo "tag=v$V" >> "$GITHUB_OUTPUT"
+
+      - name: Sync manifest version
+        run: |
+          jq --arg v "${{ steps.ver.outputs.v }}" \
+            '.version = $v' src/manifest.json > src/manifest.tmp.json
+          mv src/manifest.tmp.json src/manifest.json
+          cat src/manifest.json
+
+      - name: Prepare dist
+        run: mkdir -p dist
+
+      # ---------- Firefox ----------
+      - name: Sign Firefox xpi
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          web-ext sign \
+            --source-dir=src \
+            --artifacts-dir=dist/firefox \
+            --channel=unlisted
+          mkdir -p dist
+          mv dist/firefox/*.xpi "dist/netflix-subs-firefox-v${{ steps.ver.outputs.v }}.xpi"
+
+      # ---------- Chrome ----------
+      - name: Build Chrome zip
+        run: |
+          rm -rf chrome-build
+          cp -r src chrome-build
+          jq '.background = {service_worker: "background.js"} | del(.browser_specific_settings)' \
+            chrome-build/manifest.json > chrome-build/manifest.tmp.json
+          mv chrome-build/manifest.tmp.json chrome-build/manifest.json
+          cd chrome-build
+          zip -r "../dist/netflix-subs-chrome-v${{ steps.ver.outputs.v }}.zip" .
+
+      # ---------- updates.json (Firefox auto-update) ----------
+      - name: Generate updates.json
+        run: |
+          cat > dist/updates.json <<EOF
+          {
+            "addons": {
+              "netflix-custom-subs@local.dev": {
+                "updates": [
+                  {
+                    "version": "${{ steps.ver.outputs.v }}",
+                    "update_link": "https://github.com/${{ github.repository }}/releases/download/${{ steps.ver.outputs.tag }}/netflix-subs-firefox-v${{ steps.ver.outputs.v }}.xpi"
+                  }
+                ]
+              }
+            }
+          }
+          EOF
+          cat dist/updates.json
+
+      - name: List artifacts
+        run: ls -la dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: ${{ steps.ver.outputs.tag }}
+          generate_release_notes: true
+          files: |
+            dist/netflix-subs-firefox-v${{ steps.ver.outputs.v }}.xpi
+            dist/netflix-subs-chrome-v${{ steps.ver.outputs.v }}.zip
+            dist/updates.json
