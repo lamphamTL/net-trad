@@ -11,7 +11,8 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "netflix-custom-subs@local.dev",
-      "strict_min_version": "115.0"
+      "strict_min_version": "115.0",
+      "update_url": "https://github.com/lamphamTL/net-trad/releases/latest/download/updates.json"
     }
   },
   "content_scripts": [
