@@ -2,41 +2,53 @@ name: Release
 
 on:
   push:
-    tags: ['v*']
+    branches: [main]
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to release (e.g. 0.1.2)'
-        required: true
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
+      - name: Read version from VERSION file
+        id: ver
+        run: |
+          V=$(tr -d '[:space:]' < VERSION)
+          if [ -z "$V" ]; then
+            echo "VERSION file is empty" >&2
+            exit 1
+          fi
+          echo "v=$V" >> "$GITHUB_OUTPUT"
+          echo "tag=v$V" >> "$GITHUB_OUTPUT"
+          echo "Version: $V"
+
+      - name: Skip if release already exists
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "${{ steps.ver.outputs.tag }}" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release ${{ steps.ver.outputs.tag }} already exists — skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/setup-node@v4
+        if: steps.check.outputs.skip != 'true'
         with:
           node-version: 20
 
       - name: Install web-ext
+        if: steps.check.outputs.skip != 'true'
         run: npm install -g web-ext@8
 
-      - name: Resolve version
-        id: ver
-        run: |
-          if [ -n "${{ inputs.version }}" ]; then
-            V="${{ inputs.version }}"
-          else
-            V="${GITHUB_REF_NAME#v}"
-          fi
-          echo "v=$V" >> "$GITHUB_OUTPUT"
-          echo "tag=v$V" >> "$GITHUB_OUTPUT"
-
       - name: Sync manifest version
+        if: steps.check.outputs.skip != 'true'
         run: |
           jq --arg v "${{ steps.ver.outputs.v }}" \
             '.version = $v' src/manifest.json > src/manifest.tmp.json
@@ -44,10 +56,12 @@ jobs:
           cat src/manifest.json
 
       - name: Prepare dist
+        if: steps.check.outputs.skip != 'true'
         run: mkdir -p dist
 
       # ---------- Firefox ----------
       - name: Sign Firefox xpi
+        if: steps.check.outputs.skip != 'true'
         env:
           WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
           WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
@@ -56,11 +70,11 @@ jobs:
             --source-dir=src \
             --artifacts-dir=dist/firefox \
             --channel=unlisted
-          mkdir -p dist
           mv dist/firefox/*.xpi "dist/netflix-subs-firefox-v${{ steps.ver.outputs.v }}.xpi"
 
       # ---------- Chrome ----------
       - name: Build Chrome zip
+        if: steps.check.outputs.skip != 'true'
         run: |
           rm -rf chrome-build
           cp -r src chrome-build
@@ -72,6 +86,7 @@ jobs:
 
       # ---------- updates.json (Firefox auto-update) ----------
       - name: Generate updates.json
+        if: steps.check.outputs.skip != 'true'
         run: |
           cat > dist/updates.json <<EOF
           {
@@ -90,13 +105,16 @@ jobs:
           cat dist/updates.json
 
       - name: List artifacts
+        if: steps.check.outputs.skip != 'true'
         run: ls -la dist/
 
       - name: Create GitHub Release
+        if: steps.check.outputs.skip != 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.ver.outputs.tag }}
           name: ${{ steps.ver.outputs.tag }}
+          target_commitish: ${{ github.sha }}
           generate_release_notes: true
           files: |
             dist/netflix-subs-firefox-v${{ steps.ver.outputs.v }}.xpi
