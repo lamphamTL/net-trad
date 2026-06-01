@@ -3,7 +3,7 @@
 Firefox + Chrome extension to overlay custom subtitles on Netflix.
 
 <p align="center">
-  <img src="docs/screenshot" alt="Netflix Custom Subtitles popup" width="380" />
+  <img src="docs/screenshot.png" alt="Netflix Custom Subtitles popup" width="380" />
 </p>
 
 ## Install
